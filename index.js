@@ -1,39 +1,41 @@
-const { ConcatSource } = require('webpack-sources');
+const { ConcatSource } = require("webpack-sources");
 
-const ALT_RUNTIMES = ['alt', 'alt-client', 'alt-server']; // all modules we will intercept
+const ALT_RUNTIMES = ["alt", "alt-client", "alt-server"]; // all modules we will intercept
 
-const ALT_ID = 'alt'; // the variable name to import the alt:V runtime as
-const NATIVES_ID = 'natives'; // the variable name to import the natives runtime as
+const ALT_ID = "alt"; // the variable name to import the alt:V runtime as
+const NATIVES_ID = "natives"; // the variable name to import the natives runtime as
 
 class AltvPlugin {
     apply(compiler) {
         const options = compiler.options;
 
-        const externals = Array.isArray(options.externals) ? options.externals : [options.externals];
+        const externals = Array.isArray(options.externals)
+            ? options.externals
+            : [options.externals];
 
         // make all alt:V runtimes external so Webpack doesn't try to bundle them in
         const altExternals = {
-            natives: NATIVES_ID
+            natives: NATIVES_ID,
         };
-        ALT_RUNTIMES.forEach(id => altExternals[id] = ALT_ID);
+        ALT_RUNTIMES.forEach((id) => (altExternals[id] = ALT_ID));
         externals.push(altExternals);
 
         options.externals = externals;
 
-        compiler.hooks.compilation.tap('AltvPlugin', compilation => {
-            compilation.hooks.optimizeChunkAssets.tap('AltvPlugin', chunks => {
+        compiler.hooks.compilation.tap("AltvPlugin", (compilation) => {
+            compilation.hooks.optimizeChunkAssets.tap("AltvPlugin", (chunks) => {
                 for (const chunk of chunks) {
                     // alt
-                    if (ALT_RUNTIMES.some(module => doesChunkImport(chunk, module))) {
+                    if (ALT_RUNTIMES.some((module) => doesChunkImport(chunk, module))) {
                         for (const fileName of chunk.files) {
-                            addImportHeader(compilation, fileName, ALT_ID, 'alt');
+                            //addImportHeader(compilation, fileName, ALT_ID, 'alt');
                         }
                     }
 
                     // alt
-                    if (doesChunkImport(chunk, 'natives')) {
+                    if (doesChunkImport(chunk, "natives")) {
                         for (const fileName of chunk.files) {
-                            addImportHeader(compilation, fileName, NATIVES_ID, 'natives');
+                            //addImportHeader(compilation, fileName, NATIVES_ID, 'natives');
                         }
                     }
                 }
